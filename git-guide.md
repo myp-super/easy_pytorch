@@ -553,13 +553,322 @@ git push -u origin main
 | `git clone` | 把远程仓库完整下载到本地 | 第一次获取这个项目 |
 | `git pull` | 拉取远程更新并合并到当前分支 | 项目已经在本地，只是同步最新代码 |
 
-### 8.5 Fork 与 Pull Request（参与开源项目）
+### 8.5 给开源项目贡献代码 — 完整工作流
+
+这是参与开源项目的标准流程，从发现项目到 PR 被合并的每一步。
+
+#### 第一步：找到项目，了解规则
+
+在给一个项目贡献代码之前，先做这几件事：
+
+1. **阅读 README.md**：了解项目是做什么的
+2. **查看 CONTRIBUTING.md（如果有）**：项目贡献指南，包含代码规范、提交信息格式、PR 要求等
+3. **查看 Issues 标签**：看看有没有 `good first issue` 或 `help wanted` 标签，这些是适合新手的任务
+4. **查看已有的 Pull Requests**：了解 PR 的格式要求和审核标准
+
+```bash
+# 如果是小改动（如修复错别字、修复简单 bug），直接继续
+# 如果是大功能，先在 Issue 里和作者讨论，避免白费力气
+```
+
+#### 第二步：Fork 仓库
+
+在 GitHub 网页上：
+
+1. 打开要贡献的项目页面（如 `https://github.com/原作者/项目名`）
+2. 点击右上角 **Fork** 按钮
+3. 选择 Fork 到你的账号下
+
+完成后，你的 GitHub 下会有一个副本：`https://github.com/你的用户名/项目名`
+
+#### 第三步：Clone 到本地
+
+```bash
+git clone git@github.com:你的用户名/项目名.git
+cd 项目名
+```
+
+#### 第四步：添加原仓库为 upstream（关键！）
+
+原作者的仓库会持续更新，你需要保持同步。把原仓库添加为一个叫 `upstream` 的远程：
+
+```bash
+git remote add upstream git@github.com:原作者/项目名.git
+
+# 查看确认
+git remote -v
+# 输出应该是：
+# origin    git@github.com:你的用户名/项目名.git (fetch)
+# origin    git@github.com:你的用户名/项目名.git (push)
+# upstream  git@github.com:原作者/项目名.git (fetch)
+# upstream  git@github.com:原作者/项目名.git (push)
+```
+
+**理解这两个 remote 的区别**：
+
+| 名称 | 指向 | 作用 |
+|------|------|------|
+| `origin` | 你 Fork 的仓库 | 你推送代码的地方 |
+| `upstream` | 原作者的仓库 | 拉取上游最新代码 |
+
+#### 第五步：创建功能分支
+
+**永远不要在 main/master 分支上直接修改。** 为每个改动创建独立的分支：
+
+```bash
+# 确保 main 是最新的
+git checkout main
+git pull upstream main    # 从原作者仓库拉取最新代码
+
+# 创建功能分支
+git checkout -b fix-typo-chapter3
+# 分支名建议：用英文，描述清楚，如 fix-xxx、feat-xxx、docs-xxx
+
+# 推送到你的 Fork
+git push -u origin fix-typo-chapter3
+```
+
+#### 第六步：写代码并提交
+
+```bash
+# 修改代码...
+vim 文件.py
+
+# 查看改动
+git diff
+
+# 小步提交
+git add 修改的文件
+git commit -m "fix: 修复第三章中 tensor 变量的拼写错误"
+
+# 继续修改...
+git add .
+git commit -m "docs: 补充 ResNet 章节的跳跃连接图示说明"
+
+# 多次 commit 是正常的，不要把所有改动塞进一个 commit
+```
+
+#### 第七步：保持与上游同步（重要！）
+
+在你开发的过程中，原作者的仓库可能已经有了新的提交。在你发起 PR 之前，先同步：
+
+```bash
+# 1. 拉取原作者的最新代码
+git fetch upstream
+
+# 2. 切换到 main，与上游同步（你的 main 只用来跟踪上游）
+git checkout main
+git merge upstream/main
+git push origin main
+
+# 3. 把你的功能分支 rebase 到最新的 main 上
+git checkout fix-typo-chapter3
+git rebase main
+
+# 4. 解决可能的冲突（如果有的话）
+# 编辑冲突文件 → git add → git rebase --continue
+
+# 5. 强制推送（因为 rebase 改写了历史，你自己的分支，安全）
+git push --force origin fix-typo-chapter3
+```
+
+> **为什么用 rebase 而不是 merge？** 在个人功能分支上用 rebase 保持提交历史干净，作者 review 时会更容易。注意：只 rebase 你自己的分支，不要 rebase 共享分支。
+
+#### 第八步：发起 Pull Request
+
+1. 推送你的分支到 GitHub：
+   ```bash
+   git push origin fix-typo-chapter3
+   ```
+
+2. 打开你的 Fork 页面（`github.com/你的用户名/项目名`），会看到醒目的 **Compare & pull request** 按钮，点击它
+
+3. **写好 PR 标题和描述**（极其重要！）：
 
 ```
-1. Fork：在 GitHub 网页上点 Fork 按钮，把别人的仓库复制到你的账号下
-2. Clone：git clone git@github.com:你的用户名/项目.git
-3. 修改：创建分支 → 改代码 → commit → push
-4. Pull Request：在 GitHub 网页上发起 PR，请求原作者合并你的修改
+标题：fix: 修正 ResNet 章节中残差块维度标注错误
+
+## 做了什么
+- 修改了 15b_resnet.md 中残差块的输入/输出维度标注
+- 添加了维度变换的详细注释
+
+## 为什么
+当前版本中残差块的维度标注为 (64, 32, 32)，实际应为
+(64, 28, 28)，这会造成读者对卷积步长和池化的理解混乱。
+
+## 如何测试
+阅读修改后的章节，验证维度与代码输出一致。
+
+## 截图
+（如果有 UI 改动，附上前后对比截图）
+```
+
+4. 选择 base 仓库（原作者的分支）和 head 仓库（你 Fork 的分支）
+5. 点击 **Create pull request**
+
+#### 第九步：Code Review 与修改
+
+PR 创建后，原作者或维护者会进行 Code Review：
+
+```bash
+# 收到 review 意见后，在原分支上修改
+git checkout fix-typo-chapter3
+
+# 根据意见修改代码...
+vim 文件.py
+
+# 提交修改
+git add .
+git commit -m "fix: 根据 review 意见，修正残差块维度"
+
+# 推送（自动更新 PR）
+git push origin fix-typo-chapter3
+```
+
+**Code Review 中的注意事项**：
+- 维护者可能会要求修改——这是正常的，不是否定你
+- 每次 push 到 PR 分支，PR 会自动更新
+- 如果讨论较长，点击 GitHub 上的 **Resolve conversation** 标记已解决的问题
+- 如果你的 PR 很久没人理，可以礼貌地在评论区 ping 一下
+
+#### 第十步：PR 被合并后
+
+```bash
+# 1. 同步你的 main
+git checkout main
+git pull upstream main
+git push origin main
+
+# 2. 删除功能分支（已合并，不再需要）
+git branch -d fix-typo-chapter3
+git push origin --delete fix-typo-chapter3
+
+# 3. 如果是长期贡献，更新你 Fork 中的所有分支
+git fetch upstream
+```
+
+#### 完整流程图
+
+```
+作者仓库 (upstream)              你的 Fork (origin)              你的电脑 (local)
+┌──────────────┐               ┌──────────────┐               ┌──────────────┐
+│              │               │              │               │              │
+│   原项目     │               │  你的副本    │               │  工作目录    │
+│              │               │              │               │              │
+└──────┬───────┘               └──────┬───────┘               └──────┬───────┘
+       │                              │                              │
+       │         ①Fork               │                              │
+       │◄────────────────────────────│                              │
+       │                              │                              │
+       │                              │        ②Clone                │
+       │                              │◄─────────────────────────────│
+       │                              │                              │
+       │                              │                              │ ③ 创建分支
+       │                              │                              │ ④ 写代码
+       │                              │                              │ ⑤ commit
+       │                              │                              │
+       │        ⑥ 拉取上游更新        │                              │
+       │─────────────────────────────►│                              │
+       │                              │        ⑦ rebase              │
+       │                              │─────────────────────────────►│
+       │                              │                              │
+       │                              │        ⑧ push                │
+       │                              │◄─────────────────────────────│
+       │                              │                              │
+       │        ⑨ Pull Request       │                              │
+       │◄────────────────────────────│                              │
+       │                              │                              │
+       │   ⑩ Code Review & 修改       │                              │
+       │◄────────────────────►│◄─────────────────────────►│
+       │                              │                              │
+       │        ⑪ Merge              │                              │
+       │─────────────────────────────►│                              │
+       │                              │                              │
+```
+
+#### 提交信息规范（Conventional Commits）
+
+开源项目通常遵循约定式提交规范。建议使用以下前缀：
+
+| 前缀 | 含义 | 示例 |
+|------|------|------|
+| `fix:` | 修复 bug | `fix: 修复 GPU 训练时 batch norm 报错` |
+| `feat:` | 新功能 | `feat: 添加数据增强的参数化配置` |
+| `docs:` | 文档改动 | `docs: 补充 Tensor 章节的维度图示` |
+| `refactor:` | 重构代码（不改变功能） | `refactor: 提取训练循环为独立函数` |
+| `test:` | 添加或修改测试 | `test: 添加 DataLoader shuffle 的单元测试` |
+| `chore:` | 杂务（依赖更新、构建等） | `chore: 升级 PyTorch 到 2.5` |
+| `style:` | 代码格式（不影响逻辑） | `style: 统一缩进为 4 空格` |
+
+#### 贡献礼仪（开源软技能）
+
+1. **先搜索后提问**：看看有没有类似的 Issue 或 PR 被讨论过
+2. **先 Issue 后 PR**：大改动先开 Issue 讨论，得到同意后再写代码
+3. **一个 PR 只做一件事**：不要在一个 PR 里同时修复 bug、添加功能、重构代码
+4. **保持 PR 小**：大的 PR 很难 review，拆成几个小的
+5. **尊重维护者的时间**：维护者通常是志愿者，耐心等待
+6. **接受拒绝**：PR 可能被拒绝，这不是对你个人的否定
+7. **持续贡献**：从小处着手（改文档、修拼写），逐步建立信任
+
+#### 中大型功能的标准流程示例
+
+假设你要给本项目添加"AdamW 优化器章节"：
+
+```bash
+# 1. 先在 Issue 里讨论
+#    标题："[提议] 新增 AdamW 优化器章节"
+#    内容：为什么需要、放在哪里、大纲是什么
+
+# 2. 获得同意后，开始开发
+git checkout main
+git pull upstream main
+git checkout -b feat-adamw-optimizer
+
+# 3. 开发（可能持续几天）
+git add 新增的文件.md
+git commit -m "feat: 添加 AdamW 优化器章节骨架"
+
+git add .
+git commit -m "feat: 补充 AdamW 代码示例"
+
+git commit -m "feat: 添加 AdamW vs Adam 对比实验"
+
+# 4. 开发过程中，定期同步上游
+git fetch upstream
+git rebase upstream/main
+# 解决冲突...
+
+# 5. 整理提交历史（可选但推荐）
+git rebase -i HEAD~3   # 把零散的小 commit 合并
+
+# 6. 推送并发起 PR
+git push -u origin feat-adamw-optimizer
+# 在 GitHub 上创建 PR
+
+# 7. PR 合并后清理
+git checkout main
+git pull upstream main
+git push origin main
+git branch -d feat-adamw-optimizer
+git push origin --delete feat-adamw-optimizer
+```
+
+#### 简单修复流程示例（修复拼写错误）
+
+```bash
+# 轻量级流程，适合文档纠错、简单 bug 修复
+git checkout main
+git pull upstream main
+git checkout -b fix-typo
+
+# 修改文件
+vim chapters/part2_basics/01_tensor.md
+
+git add .
+git commit -m "docs: 修正 tensor 章节中 '张量' 的拼写"
+
+git push -u origin fix-typo
+# 在 GitHub 上创建 PR
 ```
 
 ---
