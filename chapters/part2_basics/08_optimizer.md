@@ -88,15 +88,15 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 x = torch.tensor([[2.0]])   # 输入 = 2
 target = torch.tensor([[0.0]])  # 期望输出 = 0
 
-for step in range(20):
+for i in range(20):
     optimizer.zero_grad()        # 清零
     output = model(x)            # 前向
     loss = (output - target) ** 2  # 损失
     loss.backward()              # 反向
     optimizer.step()             # 更新（替代了手动 for param in params: param -= lr*grad）
     
-    if step % 5 == 0:
-        print(f"Step {step:2d}: loss = {loss.item():.6f}")
+    if i % 5 == 0:
+        print(f"Step {i:2d}: loss = {loss.item():.6f}")
 ```
 
 ### 8.2.3 optimizer.zero_grad() —— 为什么必须在每步开始时调用
