@@ -1,0 +1,28 @@
+# Build artifacts
+.build_*
+*.aux
+*.log
+*.out
+*.toc
+*.xdv
+
+# PDF output (generated)
+PyTorch_学习笔记.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.pth
+*.onnx
+*.zip
