@@ -242,17 +242,17 @@ for lr in [0.001, 0.01, 0.1, 1.0, 2.0]:
 
 ---
 
-## 8.5 训练步骤的"六字真言"
+## 8.5 ==训练步骤的"六字真言"==
 
 现在你有了所有的零件。每个训练步骤 = 6 个操作：
 
 ```
 ┌─────────────────────────────────────────────────┐
-│          每个 batch 的训练步骤 = 6 步            │
+│          每个 batch 的训练步骤 = 6 步             │
 │                                                 │
-│  ① optimizer.zero_grad()   ← 清空旧梯度         │
+│  ① optimizer.zero_grad()   ← 清空旧梯度          │
 │  ② output = model(x)       ← 前向传播           │
-│  ③ loss = criterion(o, y)  ← 计算损失           │
+│  ③ loss = criterion(output, y)  ← 计算损失      │
 │  ④ loss.backward()         ← 反向传播           │
 │  ⑤ optimizer.step()        ← 更新参数           │
 │                                                 │
